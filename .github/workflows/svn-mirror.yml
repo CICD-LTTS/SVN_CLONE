@@ -1,0 +1,13 @@
+name: Mirror local SVN to GitHub 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+jobs:
+  mirror:
+    runs-on: self-hosted
+    env: 
+      WORKDIR: 
+      SVN_URL: 
+    
+  
