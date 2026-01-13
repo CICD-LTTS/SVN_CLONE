@@ -6,7 +6,7 @@ jobs:
     runs-on: self-hosted
     env: 
       WORKDIR: D:/svn-mirror
-      SVN_URL: file:///D:/HONDA
+      SVN_URL: file:///D:/SVN
     steps:
       - name: Pre-requisites check
         run: |
