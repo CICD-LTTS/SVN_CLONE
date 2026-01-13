@@ -7,38 +7,49 @@ jobs:
     env: 
       WORKDIR: D:/svn-mirror
       SVN_URL: file:///D:/HONDA
-
-steps:
-  -name: Update svn repo
-  shell: powershell
-  run: |
-    if (!(Test-Path $env:WORKDIR)){
-      New-Item -ItemType Directory -Path $env:WORKDIR | Out-Null
-    }
-
-    Set-Location $env:WORKDIR
-    
-    if (!(Test-Path ".git")){
-      Write-Host "first clone from SVN..."
-      git svn clone --no-minimize-url --stdlayout $env:SVN_URL .
-      git branch -M main
-    } else {
-      Write-Host "incremental fetch from SVN..."
-      git svn fetch
-      git svn rebase
-    }
-
-    foreach ($ref in (git for-each-ref --format='%(refname:short)'refs/remotes)){
-      $bname = $ref -replace '^svn/',''
-      if ($bname -ne 'trunk' and ($ref -notmatch '/tags/')){
-        git branch -f $bname "refs/remotes/$ref"
-      }
-    }
-    
-  
-  
-  
-
+    steps:
+      - name: Pre-requisites check
+        run: |
+          git --version
+          svn --version
+          git svn --version
+      - name: Update svn repo
+        shell: powershell
+        run: |
+          if (!(Test-Path $env:WORKDIR)){
+            New-Item -ItemType Directory -Path $env:WORKDIR | Out-Null
+          }
       
-    
-  
+          Set-Location $env:WORKDIR
+          
+          if (!(Test-Path ".git")){
+            Write-Host "first clone from SVN..."
+            git svn clone --no-minimize-url --stdlayout $env:SVN_URL .
+            git branch -M main
+          } else {
+            Write-Host "incremental fetch from SVN..."
+            git svn fetch
+            git svn rebase
+          }
+          foreach ($ref in (git for-each-ref --format='%(refname:short)'refs/remotes)){
+            $bname = $ref -replace '^svn/',''
+            if ($bname -ne 'trunk' and ($ref -notmatch '/tags/')){
+              git branch -f $bname "refs/remotes/$ref"
+            }
+          }
+          foreach ($tagref in (git for-each-ref --format='%(refname:short)'refs/remotes/tags)){
+            $tag = $tagref -replace '^tags/',''
+            git tag -f $tag "refs/remotes/tags/$tagref"
+          }
+      - name: Push to Github
+        shell: powershell
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Set-Location $env:WORKDIR
+          git remote remove origin 2>$null
+          git remote add origin "https://x-access-token:${env:GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git push -u origin main
+          git push origin --all
+          git push origin --tags
+          
