@@ -1,13 +1,44 @@
 name: Mirror local SVN to GitHub 
 on:
   workflow_dispatch:
-  #schedule:
-    #- cron: "0 */6 * * *"
 jobs:
   mirror:
     runs-on: self-hosted
     env: 
-      WORKDIR: 
-      SVN_URL: 
+      WORKDIR: D:/svn-mirror
+      SVN_URL: file:///D:/HONDA
+
+steps:
+  -name: Update svn repo
+  shell: powershell
+  run: |
+    if (!(Test-Path $env:WORKDIR)){
+      New-Item -ItemType Directory -Path $env:WORKDIR | Out-Null
+    }
+
+    Set-Location $env:WORKDIR
+    
+    if (!(Test-Path ".git")){
+      Write-Host "first clone from SVN..."
+      git svn clone --no-minimize-url --stdlayout $env:SVN_URL .
+      git branch -M main
+    } else {
+      Write-Host "incremental fetch from SVN..."
+      git svn fetch
+      git svn rebase
+    }
+
+    foreach ($ref in (git for-each-ref --format='%(refname:short)'refs/remotes)){
+      $bname = $ref -replace '^svn/',''
+      if ($bname -ne 'trunk' and ($ref -notmatch '/tags/')){
+        git branch -f $bname "refs/remotes/$ref"
+      }
+    }
+    
+  
+  
+  
+
+      
     
   
