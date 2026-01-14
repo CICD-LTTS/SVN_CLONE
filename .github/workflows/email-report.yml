@@ -20,7 +20,7 @@ jobs:
           secure: true
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          from: "github.com"
+          from: ${{ secrets.SMTP_USERNAME }}
           to: "debashruti801@gmail.com"
           subject: ${{ steps.data.outputs.subject }}
           html_body: ${{ steps.data.outputs.html }}
