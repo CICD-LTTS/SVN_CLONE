@@ -1,0 +1,29 @@
+name: Daily email report
+on: 
+  #schedule:
+   # - cron: "0 6 * * *"
+  workflow_dispatch:
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: generate email content
+        id: data
+        run: |
+          echo "subject=Trial email" >> $GITHUB_OUTPUT
+          echo "html=<p>Hello</p>" >> $GITHUB_OUTPUT
+      - name: send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server: ${{ secrets.SMTP_HOST }}
+          port: ${{ secrets.SMTP_PORT }}
+          secure: true
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          from: "github.com"
+          to: "debashruti801@gmail.com"
+          subject: ${{ steps.data.outputs.subject }}
+          html_body: ${{ steps.data.outputs.html }}
+          
+          
+    
