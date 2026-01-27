@@ -1,0 +1,110 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample ARXML-like file for testing config_check.json.
+     Intentionally simple (no namespaces) to match tree.findall(".//ElementName") in your script.
+     Contains both VALID and INVALID values for testing. -->
+<ARXML>
+  <Project>
+    <Name>BodyControlModule</Name>
+    <Meta>
+      <Author>TestUser</Author>
+      <Created>2026-01-15</Created>
+      <Revision>3</Revision>
+    </Meta>
+  </Project>
+
+  <Module>
+    <Name>DoorLockManager</Name>
+    <Version>1.2.0</Version>
+
+    <Parameters>
+      <Parameter>
+        <Key>RetryCount</Key>
+        <Value>3</Value>
+        <Unit>count</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>TimeoutMs</Key>
+        <!-- INVALID for testing: we'll only allow 100, 200, 500 in config -->
+        <Value>350</Value>
+        <Unit>ms</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>LogLevel</Key>
+        <!-- VALID candidate: INFO will be allowed -->
+        <Value>INFO</Value>
+      </Parameter>
+      <Parameter>
+        <Key>EnableAudit</Key>
+        <!-- VALID candidate: "true" will be allowed -->
+        <Value>true</Value>
+      </Parameter>
+    </Parameters>
+
+    <OperatingModes>
+      <!-- VALID candidate -->
+      <OperatingMode>NORMAL</OperatingMode>
+      <!-- INVALID for testing: not in allowed list -->
+      <OperatingMode>EXPERIMENTAL</OperatingMode>
+      <!-- VALID candidate -->
+      <OperatingMode>SAFE</OperatingMode>
+    </OperatingModes>
+
+    <Endpoints>
+      <Endpoint>
+        <Name>LIN_Channel_1</Name>
+        <Role>Master</Role>
+        <Baudrate>19200</Baudrate>
+      </Endpoint>
+      <Endpoint>
+        <Name>CAN_Main</Name>
+        <Role>Controller</Role>
+        <Baudrate>500000</Baudrate>
+      </Endpoint>
+    </Endpoints>
+  </Module>
+
+  <Module>
+    <Name>InteriorLightController</Name>
+    <Version>2.0.1</Version>
+
+    <Parameters>
+      <Parameter>
+        <Key>TimeoutMs</Key>
+        <!-- VALID candidate: 200 in allowed list -->
+        <Value>200</Value>
+        <Unit>ms</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>LogLevel</Key>
+        <!-- INVALID for testing: VERBOSE not allowed -->
+        <Value>VERBOSE</Value>
+      </Parameter>
+      <Parameter>
+        <Key>EnableAudit</Key>
+        <!-- INVALID for testing: "maybe" not allowed -->
+        <Value>maybe</Value>
+      </Parameter>
+    </Parameters>
+
+    <OperatingModes>
+      <!-- VALID candidate -->
+      <OperatingMode>NORMAL</OperatingMode>
+      <!-- VALID candidate -->
+      <OperatingMode>DEBUG</OperatingMode>
+    </OperatingModes>
+  </Module>
+
+  <Diagnostics>
+    <DTC>
+      <Id>0x1001</Id>
+      <Severity>LOW</Severity>
+      <Description>Door lock motor overcurrent</Description>
+    </DTC>
+    <DTC>
+      <Id>0x2002</Id>
+      <Severity>HIGH</Severity>
+      <Description>Interior light short circuit</Description>
+    </DTC>
+  </Diagnostics>
+</ARXML>
