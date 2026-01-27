@@ -1,0 +1,273 @@
+
+name: generate arxml diff
+
+on:
+  workflow_run:
+    workflows: [ "sync multiple github repos to base repo" ]
+    types: [ completed ]
+  workflow_dispatch: {}  # manual run, no inputs
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: arxml-diff-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  arxml-diff:
+    runs-on: [self-hosted, ubuntu-local-machine]
+
+    steps:
+      # ------------------------
+      # CHECKOUT BRANCHES
+      # ------------------------
+      - name: Checkout develop (current HEAD)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop
+
+      - name: Checkout main into _main/
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: _main
+          fetch-depth: 0
+
+      # ------------------------
+      # DIAGNOSTICS & ARTIFACT (from triggering run)
+      # ------------------------
+      - name: List artifacts on triggering run
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = context.payload?.workflow_run?.id;
+            if (!runId) {
+              core.warning('No workflow_run.id in event payload; skipping artifact listing.');
+              return;
+            }
+            const res = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page: 100
+            });
+            const artifacts = res?.data?.artifacts ?? [];
+            core.info(`Found ${artifacts.length} artifacts on run ${runId}`);
+            for (const a of artifacts) {
+              core.info(`- ${a.name} (expired=${a.expired}, id=${a.id})`);
+            }
+
+      - name: Download selection artifact from triggering run
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: selected-repos
+          path: .sync-meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+      # ------------------------
+      # DETERMINE REPOS
+      # ------------------------
+      - name: Determine repos to process
+        id: select_repos
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEFAULT="ECM PCM HVAC_SVN BCM_SHAREPOINT ABS_JIRA"
+
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            if [[ ! -f ".sync-meta/selected_repos.txt" ]]; then
+              echo "❌ Selection artifact missing for workflow_run."
+              exit 1
+            fi
+          fi
+
+          if [[ -f ".sync-meta/selected_repos.txt" ]]; then
+            mapfile -t arr < <(grep -E '^\S' .sync-meta/selected_repos.txt | sort -u)
+            if (( ${#arr[@]} > 0 )); then
+              echo "Using selection: ${arr[*]}"
+              echo "repos=${arr[*]}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "No selection artifact; defaulting to all repos for manual run."
+            echo "repos=${DEFAULT}" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ No selection resolved, and not a manual run."
+            exit 1
+          fi
+
+      # ------------------------
+      # SETUP BOTH ENGINES
+      # ------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pandas openpyxl
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      # ------------------------
+      # RUN DIFFS WITH BOTH ENGINES
+      # ------------------------
+      - name: Run ARXML diffs (Python + Java)
+        env:
+          REPOS: ${{ steps.select_repos.outputs.repos }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPOS="${REPOS:?No repos provided}"
+          echo "==== BRANCH CONTEXT ===="
+          echo "COMPARE (develop): $(git rev-parse --abbrev-ref HEAD) @ $(git rev-parse --short HEAD)"
+          if [[ -d "_main/.git" ]]; then
+            echo "BASE (main) worktree present"
+            echo "BASE commit: $(git -C _main rev-parse --short HEAD)"
+          else
+            echo "❗ ERROR: _main/ is missing or not a Git checkout."
+            exit 1
+          fi
+          echo "========================"
+          shopt -s nullglob
+          IFS=' ' read -r -a REPOS_ARR <<< "$REPOS"
+          for R in "${REPOS_ARR[@]}"; do
+            echo "::group::[${R}] Exact-1-per-folder pairing"
+            NEW_ROOT="${R}/files"
+            OLD_ROOT="_main/${R}/files"
+            OUT_DIR="${R}/${R}-DIFFERENCE"
+            echo "NEW_ROOT: ${NEW_ROOT}"
+            echo "OLD_ROOT: ${OLD_ROOT}"
+            echo "OUT_DIR:  ${OUT_DIR}"
+            rm -rf "${OUT_DIR}" || true
+            mkdir -p "${OUT_DIR}"
+            if [[ ! -d "$NEW_ROOT" ]]; then
+              echo "⚠ Skipping ${R}: develop dir not found"
+              echo "::endgroup::"
+              continue
+            fi
+            if [[ ! -d "$OLD_ROOT" ]]; then
+              echo "⚠ Skipping ${R}: main dir not found"
+              echo "::endgroup::"
+              continue
+            fi
+            mapfile -t DIRS_NEW < <(
+              find "$NEW_ROOT" -type f -iname '*.arxml' -printf '%h\n' \
+                | sed -E "s|^${NEW_ROOT}/?||; s|^$||; s|^$|.|" \
+                | sort -u
+            )
+            mapfile -t DIRS_OLD < <(
+              find "$OLD_ROOT" -type f -iname '*.arxml' -printf '%h\n' \
+                | sed -E "s|^${OLD_ROOT}/?||; s|^$||; s|^$|.|" \
+                | sort -u
+            )
+            mapfile -t DIRS < <(
+              { printf "%s\n" "${DIRS_NEW[@]}"; printf "%s\n" "${DIRS_OLD[@]}"; } \
+              | awk 'NF' | sort -u
+            )
+            total_pairs=0
+            skipped=0
+            for d in "${DIRS[@]}"; do
+              NEW_DIR="$NEW_ROOT"
+              OLD_DIR="$OLD_ROOT"
+              [[ "$d" != "." ]] && NEW_DIR="$NEW_ROOT/$d" && OLD_DIR="$OLD_ROOT/$d"
+              if [[ ! -d "$NEW_DIR" || ! -d "$OLD_DIR" ]]; then
+                skipped=$((skipped+1))
+                continue
+              fi
+              mapfile -t new_files < <(find "$NEW_DIR" -maxdepth 1 -type f -iname '*.arxml' -printf '%f\n' | sort)
+              mapfile -t old_files < <(find "$OLD_DIR" -maxdepth 1 -type f -iname '*.arxml' -printf '%f\n' | sort)
+              if (( ${#new_files[@]} == 1 && ${#old_files[@]} == 1 )); then
+                nf="${new_files[0]}"
+                of="${old_files[0]}"
+                newf="${NEW_DIR}/${nf}"
+                oldf="${OLD_DIR}/${of}"
+                nf_base="${nf%.[aA][rR][xX][mM][lL]}"
+                of_base="${of%.[aA][rR][xX][mM][lL]}"
+                name_flat="${of_base}_vs_${nf_base}"
+                out_python="${OUT_DIR}/${name_flat}_html.xlsx"
+                out_java="${OUT_DIR}/${name_flat}.xlsx"
+                # ---------- Python ----------
+                python "./scripts/generate_arxml_difference.py" "$oldf" "$newf" "$out_python" || {
+                  echo "  ❗ Python diff failed for $name_flat"
+                }
+                # ---------- Java (NO log files) ----------
+                echo "  Running Java compare:"
+                echo "    main:    $oldf"
+                echo "    develop: $newf"
+                echo "    output:  $out_java"
+                if ! java -jar ./jar/arxmlDiffjar.jar "$oldf" "$newf" "$out_java"; then
+                  echo "  ❗ Java diff failed for $name_flat"
+                fi
+                produced=0
+                [[ -f "$out_python" ]] && produced=$((produced+1))
+                [[ -f "$out_java" ]] && produced=$((produced+1))
+                (( produced > 0 )) && total_pairs=$((total_pairs+1)) || {
+                  echo "  ❗ No expected outputs found for $name_flat"
+                }
+              else
+                skipped=$((skipped+1))
+              fi
+            done
+            echo "==== ${R} SUMMARY ===="
+            echo "  Pairs diffed: ${total_pairs}"
+            echo "  Folders skipped: ${skipped}"
+            echo "======================"
+            echo "::endgroup::"
+          done
+      # ------------------------
+      # COMMIT RESULTS
+      # ------------------------
+      - name: Commit and push diff results to develop
+        shell: bash
+        env:
+          REPOS: ${{ steps.select_repos.outputs.repos }}
+        run: |
+          set -euo pipefail
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          IFS=' ' read -r -a REPOS_ARR <<< "${REPOS}"
+
+          for R in "${REPOS_ARR[@]}"; do
+            git add -A "${R}/${R}-DIFFERENCE" || true
+          done
+
+          if ! git diff --cached --quiet; then
+            git commit -m "ARXML diffs (Python+Java): main vs develop-test [skip ci]"
+            git push origin HEAD:refs/heads/develop
+          else
+            echo "No diff artifacts to commit."
+          fi
+
+      # ------------------------
+      # UPLOAD OUTPUT ARTIFACTS
+      # ------------------------
+      - name: Upload diff artifacts (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: arxml-diff-outputs
+          path: |
+            ECM/ECM-DIFFERENCE/**
+            PCM/PCM-DIFFERENCE/**
+            HVAC_SVN/HVAC_SVN-DIFFERENCE/**
+            BCM_SHAREPOINT/BCM_SHAREPOINT-DIFFERENCE/**
+            ABS_JIRA/ABS_JIRA-DIFFERENCE/**
+          if-no-files-found: ignore
+          retention-days: 7

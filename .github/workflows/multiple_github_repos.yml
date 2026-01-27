@@ -1,0 +1,226 @@
+
+name: sync multiple github repos to base repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      sync_ecm:
+        description: "Sync ECM/files"
+        type: boolean
+        default: true
+      sync_pcm:
+        description: "Sync PCM/files"
+        type: boolean
+        default: true
+      sync_svn:
+        description: "Sync HVAC_SVN/files"
+        type: boolean
+        default: true
+      sync_sharepoint:
+        description: "Sync BCM_SHAREPOINT/files"
+        type: boolean
+        default: true
+      sync_jira:
+        description: "Sync ABS_JIRA/files"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: [self-hosted, ubuntu-local-machine]
+
+    steps:
+      - name: Checkout BASE_REPO
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set target branch name to 'develop'
+        id: branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="develop"
+          echo "Branch to create: $BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
+          echo "name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      # --- External repo checkouts ---
+
+      - name: Checkout ECM (ecm_new_feature)
+        if: ${{ inputs.sync_ecm }}
+        uses: actions/checkout@v4
+        with:
+          repository: CICD-LTTS/ECM
+          ref: ecm_new_feature
+          path: _external/ECM
+          fetch-depth: 1
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          sparse-checkout: |
+            files
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout PCM (pcm_new_feature)
+        if: ${{ inputs.sync_pcm }}
+        uses: actions/checkout@v4
+        with:
+          repository: CICD-LTTS/PCM
+          ref: pcm_new_feature
+          path: _external/PCM
+          fetch-depth: 1
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          sparse-checkout: |
+            files
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout HVAC_SVN (hvac_feature_branch)
+        if: ${{ inputs.sync_svn }}
+        uses: actions/checkout@v4
+        with:
+          repository: CICD-LTTS/HVAC_SVN
+          ref: hvac_feature_branch
+          path: _external/HVAC_SVN
+          fetch-depth: 1
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          sparse-checkout: |
+            files
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout BCM_SHAREPOINT (sharepoint_new_feature)
+        if: ${{ inputs.sync_sharepoint }}
+        uses: actions/checkout@v4
+        with:
+          repository: CICD-LTTS/BCM_SHAREPOINT
+          ref: sharepoint_new_feature
+          path: _external/BCM_SHAREPOINT
+          fetch-depth: 1
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          sparse-checkout: |
+            files
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout ABS_JIRA (abs_new_feature)
+        if: ${{ inputs.sync_jira }}
+        uses: actions/checkout@v4
+        with:
+          repository: CICD-LTTS/ABS_JIRA
+          ref: abs_new_feature
+          path: _external/ABS_JIRA
+          fetch-depth: 1
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          sparse-checkout: |
+            files
+          sparse-checkout-cone-mode: true
+
+      # --- Sync files into BASE_REPO with updated folder names ---
+
+      - name: Sync files from ECM, PCM, HVAC_SVN, BCM_SHAREPOINT, and ABS_JIRA into BASE_REPO
+        if: ${{ inputs.sync_ecm || inputs.sync_pcm || inputs.sync_svn || inputs.sync_sharepoint || inputs.sync_jira }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p ECM/files PCM/files HVAC_SVN/files BCM_SHAREPOINT/files ABS_JIRA/files
+
+          if [ -d "_external/ECM/files" ]; then
+            echo "Syncing _external/ECM/files -> ECM/files"
+            rsync -av --delete "_external/ECM/files/" "ECM/files/"
+          else
+            echo "ECM/files not found on branch ecm_new_feature; skipping."
+          fi
+
+          if [ -d "_external/PCM/files" ]; then
+            echo "Syncing _external/PCM/files -> PCM/files"
+            rsync -av --delete "_external/PCM/files/" "PCM/files/"
+          else
+            echo "PCM/files not found on branch pcm_new_feature; skipping."
+          fi
+
+          if [ -d "_external/HVAC_SVN/files" ]; then
+            echo "Syncing _external/HVAC_SVN/files -> HVAC_SVN/files"
+            rsync -av --delete "_external/HVAC_SVN/files/" "HVAC_SVN/files/"
+          else
+            echo "HVAC_SVN/files not found on branch hvac_feature_branch; skipping."
+          fi
+
+          if [ -d "_external/BCM_SHAREPOINT/files" ]; then
+            echo "Syncing _external/BCM_SHAREPOINT/files -> BCM_SHAREPOINT/files"
+            rsync -av --delete "_external/BCM_SHAREPOINT/files/" "BCM_SHAREPOINT/files/"
+          else
+            echo "BCM_SHAREPOINT/files not found on branch sharepoint_new_feature; skipping."
+          fi
+
+          if [ -d "_external/ABS_JIRA/files" ]; then
+            echo "Syncing _external/ABS_JIRA/files -> ABS_JIRA/files"
+            rsync -av --delete "_external/ABS_JIRA/files/" "ABS_JIRA/files/"
+          else
+            echo "ABS_JIRA/files not found on branch abs_new_feature; skipping."
+          fi
+
+      # --- Persist selection for workflow2 via artifact ---
+
+      - name: Write selected repos list (for workflow2)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .sync-meta
+          : > .sync-meta/selected_repos.txt
+          if [[ "${{ inputs.sync_ecm }}" == "true" ]]; then echo ECM >> .sync-meta/selected_repos.txt; fi
+          if [[ "${{ inputs.sync_pcm }}" == "true" ]]; then echo PCM >> .sync-meta/selected_repos.txt; fi
+          if [[ "${{ inputs.sync_svn }}" == "true" ]]; then echo HVAC_SVN >> .sync-meta/selected_repos.txt; fi
+          if [[ "${{ inputs.sync_sharepoint }}" == "true" ]]; then echo BCM_SHAREPOINT >> .sync-meta/selected_repos.txt; fi
+          if [[ "${{ inputs.sync_jira }}" == "true" ]]; then echo ABS_JIRA >> .sync-meta/selected_repos.txt; fi
+
+          echo "Selected repos (this run):"
+          cat .sync-meta/selected_repos.txt || true
+
+      - name: Upload selected repos artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selected-repos
+          path: .sync-meta/selected_repos.txt
+          retention-days: 7
+
+      # --- Branch handling: delete 'develop' if it exists (remote/local), then recreate ---
+
+      - name: Create fresh 'develop' branch and commit changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="${{ env.BRANCH_NAME }}"
+
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          # Delete local 'develop' if exists
+          if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+            git branch -D "${BRANCH_NAME}"
+          fi
+
+          # Delete remote 'develop' if exists
+          if git ls-remote --heads origin "${BRANCH_NAME}" >/dev/null 2>&1 && \
+             [ -n "$(git ls-remote --heads origin "${BRANCH_NAME}")" ]; then
+            git push origin --delete "${BRANCH_NAME}" || true
+          fi
+
+          # Create new branch from current HEAD
+          git switch -c "${BRANCH_NAME}"
+
+          # Stage and commit changes (updated paths)
+          if [[ -n "$(git status --porcelain ECM/files PCM/files HVAC_SVN/files BCM_SHAREPOINT/files ABS_JIRA/files || true)" ]]; then
+            git add ECM/files PCM/files HVAC_SVN/files BCM_SHAREPOINT/files ABS_JIRA/files
+            git commit -m "Sync files from multiple repos"
+          else
+            echo "No changes detected. Nothing to commit."
+          fi
+
+      - name: Push 'develop' branch (fresh)
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_NAME="${{ env.BRANCH_NAME }}"
+          git push -u --force-with-lease origin "${BRANCH_NAME}"
