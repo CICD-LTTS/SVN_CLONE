@@ -6,4 +6,33 @@ jobs:
   configcheck:
     runs-on: ubuntu-latest
     steps:
-      - name
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencied
+        run: |
+          python -m pip install --upgrade pip
+          pip install lxml
+
+      - name: Run arxml config check
+        id: check
+        shell: bash
+        run: |
+          python - << 'PYCODE;
+          import json
+          import sys
+          from lxml import etree
+
+          ARXML_PATH = "test.arxml"
+          CONFIG_PATH = "config_check.json"
+
+          try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+              CONFIG = json.load
+
+          
