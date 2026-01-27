@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Sample ARXML-like file for testing config_check.json.
      Intentionally simple (no namespaces) to match tree.findall(".//ElementName") in your script.
@@ -20,33 +19,27 @@
     <Parameters>
       <Parameter>
         <Key>RetryCount</Key>
-        <Value>3</Value>
+        <RetryValue>3</RetryValue>
         <Unit>count</Unit>
       </Parameter>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <!-- INVALID for testing: we'll only allow 100, 200, 500 in config -->
-        <Value>350</Value>
+        <!-- INVALID -->
+        <TimeValue>350</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
         <Key>LogLevel</Key>
-        <!-- VALID candidate: INFO will be allowed -->
-        <Value>INFO</Value>
+        <LogValue>INFO</LogValue>
       </Parameter>
       <Parameter>
         <Key>EnableAudit</Key>
-        <!-- VALID candidate: "true" will be allowed -->
-        <Value>true</Value>
+        <AuditValue>true</AuditValue>
       </Parameter>
     </Parameters>
 
     <OperatingModes>
-      <!-- VALID candidate -->
       <OperatingMode>NORMAL</OperatingMode>
-      <!-- INVALID for testing: not in allowed list -->
-      <OperatingMode>EXPERIMENTAL</OperatingMode>
-      <!-- VALID candidate -->
       <OperatingMode>SAFE</OperatingMode>
     </OperatingModes>
 
@@ -71,26 +64,21 @@
     <Parameters>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <!-- VALID candidate: 200 in allowed list -->
-        <Value>200</Value>
+        <TimeValue>200</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
         <Key>LogLevel</Key>
-        <!-- INVALID for testing: VERBOSE not allowed -->
-        <Value>VERBOSE</Value>
+        <LogValue>VERBOSE</LogValue>
       </Parameter>
       <Parameter>
         <Key>EnableAudit</Key>
-        <!-- INVALID for testing: "maybe" not allowed -->
-        <Value>maybe</Value>
+        <AuditValue>maybe</AuditValue>
       </Parameter>
     </Parameters>
 
     <OperatingModes>
-      <!-- VALID candidate -->
       <OperatingMode>NORMAL</OperatingMode>
-      <!-- VALID candidate -->
       <OperatingMode>DEBUG</OperatingMode>
     </OperatingModes>
   </Module>
