@@ -5,9 +5,7 @@ on:
 jobs:
   configcheck:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: SVN_CLONE
+    
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
