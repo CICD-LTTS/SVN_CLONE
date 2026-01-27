@@ -3,7 +3,7 @@
   "TimeValue":[100,200,300,400,500],
   "LogValue":["INFO"],
   "AuditValue":["true","false"],
-  "Baudrate":["19200","500000"],
+  "Baudrate":["19200-500000"],
   "Severity":["LOW","MEDIUM","HIGH"]
 }
   
