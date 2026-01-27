@@ -25,28 +25,24 @@
       </Parameter>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <!-- INVALID for testing: we'll only allow 100, 200, 500 in config -->
-        <Value>350</Value>
+        <!-- INVALID -->
+        <TimeValue>350</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
         <Key>LogLevel</Key>
-        <!-- VALID candidate: INFO will be allowed -->
         <LogValue>INFO</LogValue>
       </Parameter>
       <Parameter>
         <Key>EnableAudit</Key>
-        <!-- VALID candidate: "true" will be allowed -->
         <AuditValue>true</AuditValue>
       </Parameter>
     </Parameters>
 
     <OperatingModes>
-      <!-- VALID candidate -->
       <OperatingMode>NORMAL</OperatingMode>
-      <!-- INVALID for testing: not in allowed list -->
+      <!-- INVALID -->
       <OperatingMode>EXPERIMENTAL</OperatingMode>
-      <!-- VALID candidate -->
       <OperatingMode>SAFE</OperatingMode>
     </OperatingModes>
 
@@ -71,26 +67,21 @@
     <Parameters>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <!-- VALID candidate: 200 in allowed list -->
-        <Value>200</Value>
+        <TimeValue>200</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
         <Key>LogLevel</Key>
-        <!-- INVALID for testing: VERBOSE not allowed -->
         <LogValue>VERBOSE</LogValue>
       </Parameter>
       <Parameter>
         <Key>EnableAudit</Key>
-        <!-- INVALID for testing: "maybe" not allowed -->
         <AuditValue>maybe</AuditValue>
       </Parameter>
     </Parameters>
 
     <OperatingModes>
-      <!-- VALID candidate -->
       <OperatingMode>NORMAL</OperatingMode>
-      <!-- VALID candidate -->
       <OperatingMode>DEBUG</OperatingMode>
     </OperatingModes>
   </Module>
