@@ -40,8 +40,6 @@
 
     <OperatingModes>
       <OperatingMode>NORMAL</OperatingMode>
-      <!-- INVALID -->
-      <OperatingMode>EXPERIMENTAL</OperatingMode>
       <OperatingMode>SAFE</OperatingMode>
     </OperatingModes>
 
