@@ -33,6 +33,43 @@ jobs:
 
           try:
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-              CONFIG = json.load
+              CONFIG = json.load(f)
+          except Exception as e:
+            print(f"CONFIG_ERROR: {e}")
+            print("RESULT=False")
+            sys.exit(1)
 
-          
+          try:
+            tree = etree.parse(ARXML_PATH)
+          except Exception as e:
+            print(f"XML_PARSE_ERROR: {e}")
+            print("RESULT=False")
+            sys.exit(1)
+
+          all_ok = True
+          details = []
+
+          for element_name, allowed_values in CONFIG.items():
+            nodes = tree.findall(f".//{element_name}")
+            if not nodes:
+              all_ok = False
+              details.append(f"{element_name}: MISSING")
+              continue
+
+            values = [(n.text or "").strip() for n in nodes]
+            invalid = [v for v in values if v not in allowed_values]
+
+            if invalid:
+              all_ok = False
+              details.append(f"{element_name}: INVALID -> {', '.join(values)} ; allowed={allowed_values}")
+            else:
+              details.append(f"{element_name}: OK -> {', '.join(values)}")
+
+            print("CONFIG CHECK SUMMARY")
+            for line in details:
+              print(line)
+            result = "TRUE" if all_ok else "False"
+            print(f"RESULT={result}")
+
+            sys.exit(0 if all_ok else 1)
+            PYCODE       
