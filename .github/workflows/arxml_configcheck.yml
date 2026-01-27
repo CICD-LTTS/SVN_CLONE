@@ -83,13 +83,14 @@ jobs:
               else:
                 details.append(f"Baudrate: OK -> {', '.join(values)}")
                 
-            invalid = [v for v in values if v not in allowed_values]
-
-            if invalid:
-              all_ok = False
-              details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed={allowed_values}")
             else:
-              details.append(f"{element_name}: OK -> {', '.join(values)}")
+              invalid = [v for v in values if v not in allowed_values]
+
+              if invalid:
+                all_ok = False
+                details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed={allowed_values}")
+              else:
+                details.append(f"{element_name}: OK -> {', '.join(values)}")
 
           print("CONFIG CHECK SUMMARY")
           for line in details:
