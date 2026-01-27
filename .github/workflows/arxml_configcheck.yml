@@ -89,8 +89,11 @@ jobs:
                 details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed={allowed_values}")
 
           print("CONFIG CHECK SUMMARY")
-          for line in details:
-            print(line)
+          if details:
+            for line in details:
+              print(line)
+          else:
+            print("ALL OK!")
           result = "TRUE" if all_ok else "False"
           print(f"RESULT={result}")
 
