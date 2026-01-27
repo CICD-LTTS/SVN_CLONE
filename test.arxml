@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Sample ARXML-like file for testing config_check.json.
      Intentionally simple (no namespaces) to match tree.findall(".//ElementName") in your script.
