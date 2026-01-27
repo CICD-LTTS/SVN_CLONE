@@ -24,8 +24,7 @@
       </Parameter>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <!-- INVALID -->
-        <TimeValue>350</TimeValue>
+        <TimeValue>300</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
@@ -69,11 +68,11 @@
       </Parameter>
       <Parameter>
         <Key>LogLevel</Key>
-        <LogValue>VERBOSE</LogValue>
+        <LogValue>INFO</LogValue>
       </Parameter>
       <Parameter>
         <Key>EnableAudit</Key>
-        <AuditValue>maybe</AuditValue>
+        <AuditValue>false</AuditValue>
       </Parameter>
     </Parameters>
 
