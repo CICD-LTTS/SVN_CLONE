@@ -23,7 +23,7 @@ jobs:
         id: check
         shell: bash
         run: |
-          python - << 'PYCODE;
+          python - << 'PYCODE'
           import json
           import sys
           from lxml import etree
