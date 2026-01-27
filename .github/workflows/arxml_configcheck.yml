@@ -58,6 +58,31 @@ jobs:
               continue
 
             values = [(n.text or "").strip() for n in nodes]
+            
+            if element_name == "Baudrate":
+              range_str = allowed_values[0]
+              try:
+                min_val, max_val = map(int, range_str.split("-"))
+              except:
+                all_ok = False
+                details.append(f"Baudrate: INVALID FORMAT FOR CONFIG. SHOULB BE RANGE")
+                continue
+
+              invalid_nums = []
+              for v in values:
+                try:
+                  num = int(v)
+                  if not (min_val <= num <= max_val):
+                    invalid_nums.append(v)
+                except:
+                  invalid_nums.append(v)
+                  
+              if invalid_nums:
+                all_ok = False
+                details.append(f"Baudrate: INVALID -> {', '.join(invalid_nums)} ; allowed range={min_val}-{max_val}")
+              else:
+                details.append(f"Baudrate: OK -> {', '.join(values)}")
+                
             invalid = [v for v in values if v not in allowed_values]
 
             if invalid:
