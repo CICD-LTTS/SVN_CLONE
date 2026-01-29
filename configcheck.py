@@ -1,5 +1,9 @@
 import os
-print("current working directory:",os.getcwd())
-for item in os.listdir():
-  if os.path.isdir(item):
-    print(item)
+
+curr_dir = os.getcwd()
+print("current working directory:",curr_dir)
+
+for dirpath, dirnames, filenames in os.walk(curr_dir):
+  for file in filenames:
+    if file.lower().endswith(".arxml"):
+      print(os.path.join(dirpath, file))
