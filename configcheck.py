@@ -72,8 +72,16 @@ def configcheck(file_path, config_path):
         all_ok = False
         details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed range = {allowed_values}")
 
-  print(details)
+  print("CONFIG CHECK SUMMARY FOR:", file_path)
+  if details:
+    for line in details:
+      print(line)
+  else:
+    print("ALL OK!")
+  result = "TRUE" if all_ok else "FALSE"
+  print(f"RESULT={result}")
 
-configcheck(ARXML_PATH, CONFIG_PATH)
+for item in arxmlfiles:
+  configcheck(item, CONFIG_PATH)
 
 
