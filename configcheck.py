@@ -1,7 +1,7 @@
 import os
 import json
 import sys
-from openpyxl import workbook
+from openpyxl import Workbook
 from lxml import etree
 
 curr_dir = os.getcwd()
