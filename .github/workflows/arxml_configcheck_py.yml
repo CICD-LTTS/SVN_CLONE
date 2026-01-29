@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: excel-report
-          path: configreport.xlsx
+          path: Config_Report.xlsx
           if-no-files-found: error
         
         
