@@ -72,6 +72,8 @@ def configcheck(file_path, config_path):
         all_ok = False
         details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed range = {allowed_values}")
 
+  print(details)
+
 configcheck(ARXML_PATH, CONFIG_PATH)
 
-print(details)
+
