@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample ARXML-like file for testing config_check.json.
+     Intentionally simple (no namespaces) to match tree.findall(".//ElementName") in your script.
+     Contains both VALID and INVALID values for testing. -->
+<ARXML>
+  <Project>
+    <Name>BodyControlModule</Name>
+    <Meta>
+      <Author>TestUser</Author>
+      <Created>2026-01-15</Created>
+      <Revision>3</Revision>
+    </Meta>
+  </Project>
+
+  <Module>
+    <Name>DoorLockManager</Name>
+    <Version>1.2.0</Version>
+
+    <Parameters>
+      <Parameter>
+        <Key>RetryCount</Key>
+        <RetryValue>3</RetryValue>
+        <Unit>count</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>TimeoutMs</Key>
+        <TimeValue>300</TimeValue>
+        <Unit>ms</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>LogLevel</Key>
+        <LogValue>INFO</LogValue>
+      </Parameter>
+      <Parameter>
+        <Key>EnableAudit</Key>
+        <AuditValue>true</AuditValue>
+      </Parameter>
+    </Parameters>
+
+    <OperatingModes>
+      <OperatingMode>NORMAL</OperatingMode>
+      <OperatingMode>SAFE</OperatingMode>
+    </OperatingModes>
+
+    <Endpoints>
+      <Endpoint>
+        <Name>LIN_Channel_1</Name>
+        <Role>Master</Role>
+        <Baudrate>19200</Baudrate>
+      </Endpoint>
+      <Endpoint>
+        <Name>CAN_Main</Name>
+        <Role>Controller</Role>
+        <Baudrate>500000</Baudrate>
+      </Endpoint>
+    </Endpoints>
+  </Module>
+
+  <Module>
+    <Name>InteriorLightController</Name>
+    <Version>2.0.1</Version>
+
+    <Parameters>
+      <Parameter>
+        <Key>TimeoutMs</Key>
+        <TimeValue>200</TimeValue>
+        <Unit>ms</Unit>
+      </Parameter>
+      <Parameter>
+        <Key>LogLevel</Key>
+        <LogValue>INFO</LogValue>
+      </Parameter>
+      <Parameter>
+        <Key>EnableAudit</Key>
+        <AuditValue>false</AuditValue>
+      </Parameter>
+    </Parameters>
+
+    <OperatingModes>
+      <OperatingMode>NORMAL</OperatingMode>
+      <OperatingMode>DEBUG</OperatingMode>
+    </OperatingModes>
+  </Module>
+
+  <Diagnostics>
+    <DTC>
+      <Id>0x1001</Id>
+      <Severity>LOW</Severity>
+      <Description>Door lock motor overcurrent</Description>
+    </DTC>
+    <DTC>
+      <Id>0x2002</Id>
+      <Severity>HIGH</Severity>
+      <Description>Interior light short circuit</Description>
+    </DTC>
+  </Diagnostics>
+</ARXML>
