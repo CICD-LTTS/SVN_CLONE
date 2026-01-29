@@ -2,6 +2,7 @@ import os
 import json
 import sys
 from openpyxl import Workbook
+from openpyxl import load_workbook
 from lxml import etree
 
 curr_dir = os.getcwd()
@@ -16,11 +17,14 @@ print(arxmlfiles)
 ARXML_PATH = os.path.join(curr_dir, "test.arxml")
 CONFIG_PATH = os.path.join(curr_dir, "config_check.json")
 
+wb=Workbook()
+ws=wb.active
+ws.title = "Config Check"
+ws.append(["File","Status","Parameters","Value in arxml", "Allowed Values"])
+wb.save("Config_Report.xlsx")
+excelpath = "Config_Report.xlsx"
 
-
-
-
-def configcheck(file_path, config_path):
+def configcheck(file_path, config_path, excel_path):
   try:
     with open(config_path, "r", encoding="utf-8") as f:
       CONFIG = json.load(f)
@@ -85,14 +89,16 @@ def configcheck(file_path, config_path):
     print("ALL OK!")
   result = "TRUE" if all_ok else "FALSE"
   print(f"RESULT={result}")
+  wb=load_workbook(excel_path)
+  ws=wb["Config Check"]
+  ws.append(["File","Status","Parameters", "Value in arxml", "Allowed Values"])
+  wb.save(excel_path)
+
+
 
 for item in arxmlfiles:
-  configcheck(item, CONFIG_PATH)
+  configcheck(item, CONFIG_PATH, excelpath)
 
-wb=Workbook()
-ws=wb.active
-ws.title = "Config Check"
-ws.append(["File Check","Status","Value in arxml", "Allowed Values"])
-wb.save("Config_Report.xlsx")
+
 
 
