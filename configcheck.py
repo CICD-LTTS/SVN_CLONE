@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+from openpyxl import workbook
 from lxml import etree
 
 curr_dir = os.getcwd()
@@ -14,6 +15,10 @@ for dirpath, dirnames, filenames in os.walk(curr_dir):
 print(arxmlfiles)
 ARXML_PATH = os.path.join(curr_dir, "test.arxml")
 CONFIG_PATH = os.path.join(curr_dir, "config_check.json")
+
+
+
+
 
 def configcheck(file_path, config_path):
   try:
@@ -83,5 +88,11 @@ def configcheck(file_path, config_path):
 
 for item in arxmlfiles:
   configcheck(item, CONFIG_PATH)
+
+wb=Workbook()
+ws=wb.active
+ws.title = "Config Check"
+ws.append(["File Check","Status","Value in arxml", "Allowed Values"])
+wb.save("Config_Report.xlsx")
 
 
