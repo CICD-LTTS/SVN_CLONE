@@ -23,4 +23,12 @@ jobs:
           
       - name: run python config check file
         run: python configcheck.py
+
+      - name: upload excel file
+        uses: actions/upload-artifact@v4
+        with:
+          name: excel-report
+          path: configreport.xlsx
+          if-no-files-found: error
+        
         
