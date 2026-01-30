@@ -22,6 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install lxml
           pip install openpyxl
+          pip install xlsx2csv
           
       - name: run python config check file
         run: python configcheck.py
@@ -40,3 +41,24 @@ jobs:
           git add Config_Report.xlsx
           git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update Excel Report"
           git push
+
+      - name: convert xlsx to csv
+        run: xlsx2csv Config_Report.xlsx out.csv
+
+      - name: check xlsx file and validate
+        run: |
+          col = $(head -1 out.csv| tr ',' '\n'| n1 | grep -iw Result| awk '{print $1}')
+          if [ -z "$col" ]; then
+            echo "column not found"
+            exit 1
+          fi
+          bad = $(awk -F',' -v c ="$col" 'tolower($c)=="FALSE"{print NR}' out.csv)
+          if [ ! -z "$bad" ]; then
+            echo "Invalid rows found. Check Config_Report.xlsx"
+            echo "$bad"
+            exit 1
+          fi
+          echo "Excel validation passed"
+
+        - name: check trial stage
+          run: echo "Reached final stage"
