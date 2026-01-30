@@ -33,6 +33,8 @@ jobs:
 
       - name: commit Excel back to repo
         run: |
+          git config user.name "debashruti801-droid"
+          git config user.email "debashruti801@gmail.com"
           git add Config_Report.xlsx
           git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update Excel Report"
           git push
