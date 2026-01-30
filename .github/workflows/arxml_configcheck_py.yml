@@ -1,7 +1,8 @@
-name: run Python configcheck file
+name: Run Python Configcheck file
 
 permissions: 
   contents: write
+  
 on:
   workflow_dispatch: 
 
@@ -60,5 +61,5 @@ jobs:
           fi
           echo "Excel validation passed"
 
-        - name: check trial stage
-          run: echo "Reached final stage"
+      - name: check trial stage
+        run: echo "Reached final stage"
