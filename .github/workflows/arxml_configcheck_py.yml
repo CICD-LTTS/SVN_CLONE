@@ -34,6 +34,10 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git rm -f --ignore-unmatch Config_Report.xlsx || true
           rm -f Config_Report.xlsx || true
+          if git diff --cached --quiet; then
+            echo "no changes to commit "
+            exit 0
+          fi
           git commit -m "Delete Old Excel Report" 
           git push
           
