@@ -32,6 +32,8 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git rm -f --ignore-unmatch Config_Report.xlsx || true
           rm -f Config_Report.xlsx || true
+          git commit -m "Delete Old Excel Report" 
+          git push
           
       # - name: run python config check file
       #   run: python configcheck.py
