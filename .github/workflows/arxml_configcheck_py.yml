@@ -32,8 +32,7 @@ jobs:
           if-no-files-found: error
 
       - name: commit Excel back to repo
-        if: github.ref == 'refs/heads/main'
         run: |
           git add reports/Config_Report.xlsx
-          git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update Excel Report"
-          git push
+          git commit -m "Update Excel Report" || echo "no changes to commit"
+          git push origin feature/configcheck
