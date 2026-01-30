@@ -20,7 +20,7 @@ CONFIG_PATH = os.path.join(curr_dir, "config_check.json")
 wb=Workbook()
 ws=wb.active
 ws.title = "Config Check"
-ws.append(["File","Status","Parameters","Value in arxml", "Allowed Values"])
+ws.append(["File","Status","Invalid Parameters"])
 wb.save("Config_Report.xlsx")
 excelpath = "Config_Report.xlsx"
 
@@ -42,12 +42,14 @@ def configcheck(file_path, config_path, excel_path):
 
   all_ok = True
   details = []
+  invalid_params=[]
 
   for element_name, allowed_values in CONFIG.items():
     nodes = tree.findall(f".//{element_name}")
     if not nodes:
       all_ok = False
       details.append(f"{element_name}: MISSING")
+      invalid_params.append(element_name)
       continue
 
     values = [(n.text or "").strip() for n in nodes]
@@ -59,6 +61,7 @@ def configcheck(file_path, config_path, excel_path):
       except:
         all_ok = False
         details.append(f"Baudrate: INVALID FORMAT FOR CONFIG. SHOULD BE RANGE")
+        invalid_params.append(element_name)
         continue
 
       invalid_nums=[]
@@ -73,6 +76,7 @@ def configcheck(file_path, config_path, excel_path):
       if invalid_nums:
         all_ok = False
         details.append(f"Baudrate: INVALID -> {', '.join(invalid_nums)} ; allowed range = {min_val}-{max_val}")
+        invalid_params.append(element_name)
 
     else:
       invalid = [v for v in values if v not in allowed_values]
@@ -80,6 +84,7 @@ def configcheck(file_path, config_path, excel_path):
       if invalid:
         all_ok = False
         details.append(f"{element_name}: INVALID -> {', '.join(invalid)} ; allowed range = {allowed_values}")
+        invalid_params.append(element_name)
 
   print("CONFIG CHECK SUMMARY FOR:", file_path)
   if details:
@@ -89,9 +94,11 @@ def configcheck(file_path, config_path, excel_path):
     print("ALL OK!")
   result = "TRUE" if all_ok else "FALSE"
   print(f"RESULT={result}")
+  print(invalid_params)
+    
   wb=load_workbook(excel_path)
   ws=wb["Config Check"]
-  ws.append(["File","Status","Parameters", "Value in arxml", "Allowed Values"])
+  ws.append([file_path,result,invalid_params])
   wb.save(excel_path)
 
 
