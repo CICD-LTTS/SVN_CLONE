@@ -33,6 +33,6 @@ jobs:
 
       - name: commit Excel back to repo
         run: |
-          git add reports/Config_Report.xlsx
-          git commit -m "Update Excel Report" || echo "no changes to commit"
-          git push origin feature/configcheck
+          git add Config_Report.xlsx
+          git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update Excel Report"
+          git push
