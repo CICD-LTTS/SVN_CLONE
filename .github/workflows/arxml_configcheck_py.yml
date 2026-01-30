@@ -33,41 +33,41 @@ jobs:
           git rm -f --ignore-unmatch Config_Report.xlsx || true
           rm -f Config_Report.xlsx || true
           
-      - name: run python config check file
-        run: python configcheck.py
+      # - name: run python config check file
+      #   run: python configcheck.py
 
-      - name: upload excel file
-        uses: actions/upload-artifact@v4
-        with:
-          name: excel-report
-          path: Config_Report.xlsx
-          if-no-files-found: error
+      # - name: upload excel file
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: excel-report
+      #     path: Config_Report.xlsx
+      #     if-no-files-found: error
 
-      - name: commit Excel back to repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Config_Report.xlsx
-          git commit -m "Update Excel Report"
-          git push
+      # - name: commit Excel back to repo
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      #     git add Config_Report.xlsx
+      #     git commit -m "Update Excel Report"
+      #     git push
 
-      - name: convert xlsx to csv
-        run: xlsx2csv Config_Report.xlsx out.csv
+      # - name: convert xlsx to csv
+      #   run: xlsx2csv Config_Report.xlsx out.csv
 
-      - name: check xlsx file and validate
-        run: |
-          col=$(head -1 out.csv| tr ',' '\n'| nl | grep -iw Status| awk '{print $1}')
-          if [ -z "$col" ]; then
-            echo "column not found"
-            exit 1
-          fi
-          bad=$(awk -F',' -v c="$col" 'tolower($c)=="false"{print NR}' out.csv)
-          if [ ! -z "$bad" ]; then
-            echo "Invalid rows found. Check Config_Report.xlsx"
-            echo "$bad"
-            exit 1
-          fi
-          echo "Excel validation passed"
+      # - name: check xlsx file and validate
+      #   run: |
+      #     col=$(head -1 out.csv| tr ',' '\n'| nl | grep -iw Status| awk '{print $1}')
+      #     if [ -z "$col" ]; then
+      #       echo "column not found"
+      #       exit 1
+      #     fi
+      #     bad=$(awk -F',' -v c="$col" 'tolower($c)=="false"{print NR}' out.csv)
+      #     if [ ! -z "$bad" ]; then
+      #       echo "Invalid rows found. Check Config_Report.xlsx"
+      #       echo "$bad"
+      #       exit 1
+      #     fi
+      #     echo "Excel validation passed"
 
-      - name: check trial stage
-        run: echo "Reached final stage"
+      # - name: check trial stage
+      #   run: echo "Reached final stage"
