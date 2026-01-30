@@ -48,7 +48,7 @@ jobs:
 
       - name: check xlsx file and validate
         run: |
-          col = $(head -1 out.csv| tr ',' '\n'| n1 | grep -iw Result| awk '{print $1}')
+          col = $(head -1 out.csv| tr ',' '\n'| nl | grep -iw Result| awk '{print $1}')
           if [ -z "$col" ]; then
             echo "column not found"
             exit 1
