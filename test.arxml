@@ -24,7 +24,7 @@
       </Parameter>
       <Parameter>
         <Key>TimeoutMs</Key>
-        <TimeValue>350</TimeValue>
+        <TimeValue>300</TimeValue>
         <Unit>ms</Unit>
       </Parameter>
       <Parameter>
