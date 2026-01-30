@@ -34,6 +34,6 @@ jobs:
       - name: commit Excel back to repo
         if: github.ref == 'refs/heads/main'
         run: |
-          git add reports/Config_Report.xlsx
+          git add Config_Report.xlsx
           git diff --cached --quiet && echo "No changes to commit" || git commit -m "Update Excel Report"
           git push
