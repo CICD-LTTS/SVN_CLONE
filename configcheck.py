@@ -95,10 +95,12 @@ def configcheck(file_path, config_path, excel_path):
   result = "TRUE" if all_ok else "FALSE"
   print(f"RESULT={result}")
   print(invalid_params)
+  invalid_params_str= ", ".join(invalid_params)
+  print(invalid_params_str)
     
   wb=load_workbook(excel_path)
   ws=wb["Config Check"]
-  ws.append([file_path,result,invalid_params])
+  ws.append([file_path,result,invalid_params_str])
   wb.save(excel_path)
 
 
