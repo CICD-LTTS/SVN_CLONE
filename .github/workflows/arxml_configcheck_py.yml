@@ -53,7 +53,7 @@ jobs:
             echo "column not found"
             exit 1
           fi
-          bad=$(awk -F',' -v c="$col" 'tolower($c)=="FALSE"{print NR}' out.csv)
+          bad=$(awk -F',' -v c="$col" 'tolower($c)=="false"{print NR}' out.csv)
           if [ ! -z "$bad" ]; then
             echo "Invalid rows found. Check Config_Report.xlsx"
             echo "$bad"
