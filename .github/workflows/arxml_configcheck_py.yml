@@ -48,12 +48,12 @@ jobs:
 
       - name: check xlsx file and validate
         run: |
-          col = $(head -1 out.csv| tr ',' '\n'| nl | grep -iw Result| awk '{print $1}')
+          col=$(head -1 out.csv| tr ',' '\n'| nl | grep -iw Result| awk '{print $1}')
           if [ -z "$col" ]; then
             echo "column not found"
             exit 1
           fi
-          bad = $(awk -F',' -v c ="$col" 'tolower($c)=="FALSE"{print NR}' out.csv)
+          bad=$(awk -F',' -v c ="$col" 'tolower($c)=="FALSE"{print NR}' out.csv)
           if [ ! -z "$bad" ]; then
             echo "Invalid rows found. Check Config_Report.xlsx"
             echo "$bad"
