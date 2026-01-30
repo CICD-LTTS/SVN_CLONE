@@ -24,6 +24,13 @@ jobs:
           pip install lxml
           pip install openpyxl
           pip install xlsx2csv
+
+      - name: delete old excel file
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git rm -f --ignore-unmatch Config_Report.xlsx || true
           
       - name: run python config check file
         run: python configcheck.py
@@ -34,13 +41,6 @@ jobs:
           name: excel-report
           path: Config_Report.xlsx
           if-no-files-found: error
-
-      - name: delete old excel file
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git rm -f --ignore-unmatch Config_Report.xlsx || true
 
       - name: commit Excel back to repo
         run: |
