@@ -1,5 +1,7 @@
 name: run Python configcheck file
 
+permissions: 
+  contents: write
 on:
   workflow_dispatch: 
 
